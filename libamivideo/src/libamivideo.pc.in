@@ -1,0 +1,11 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: libamivideo
+Version: @VERSION@
+Description: Amiga (OCS/ECS/AGA) video format conversion library
+Requires:
+Libs: -L${libdir} -lamivideo
+Cflags: -I${includedir}

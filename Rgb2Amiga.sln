@@ -1,0 +1,57 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30204.135
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lib2Amiga", "lib2Amiga\lib2Amiga.vcxproj", "{271CB345-A041-3C3A-8E6B-060289245C63}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libamivideo", "libamivideo\src\libamivideo\libamivideo.vcxproj", "{860901A5-A22B-404F-BDDB-0DB00A3A28EC}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libilbm", "libilbm\src\libilbm\libilbm.vcxproj", "{C6BC542E-3C60-492A-B975-AACB07C37ACE}"
+	ProjectSection(ProjectDependencies) = postProject
+		{5857969C-CEB8-4BF3-BACB-81D7CE0FC654} = {5857969C-CEB8-4BF3-BACB-81D7CE0FC654}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Rgb2Amiga", "app\cli\Rgb2Amiga.vcxproj", "{B12702AD-ABFB-343A-A199-8E24837244A3}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C6BC542E-3C60-492A-B975-AACB07C37ACE} = {C6BC542E-3C60-492A-B975-AACB07C37ACE}
+		{5857969C-CEB8-4BF3-BACB-81D7CE0FC654} = {5857969C-CEB8-4BF3-BACB-81D7CE0FC654}
+		{860901A5-A22B-404F-BDDB-0DB00A3A28EC} = {860901A5-A22B-404F-BDDB-0DB00A3A28EC}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libiff", "libiff\src\libiff\libiff.vcxproj", "{5857969C-CEB8-4BF3-BACB-81D7CE0FC654}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{271CB345-A041-3C3A-8E6B-060289245C63}.Debug|x64.ActiveCfg = Debug|x64
+		{271CB345-A041-3C3A-8E6B-060289245C63}.Debug|x64.Build.0 = Debug|x64
+		{271CB345-A041-3C3A-8E6B-060289245C63}.Release|x64.ActiveCfg = Release|x64
+		{271CB345-A041-3C3A-8E6B-060289245C63}.Release|x64.Build.0 = Release|x64
+		{860901A5-A22B-404F-BDDB-0DB00A3A28EC}.Debug|x64.ActiveCfg = Debug|x64
+		{860901A5-A22B-404F-BDDB-0DB00A3A28EC}.Debug|x64.Build.0 = Debug|x64
+		{860901A5-A22B-404F-BDDB-0DB00A3A28EC}.Release|x64.ActiveCfg = Release|x64
+		{860901A5-A22B-404F-BDDB-0DB00A3A28EC}.Release|x64.Build.0 = Release|x64
+		{C6BC542E-3C60-492A-B975-AACB07C37ACE}.Debug|x64.ActiveCfg = Debug|x64
+		{C6BC542E-3C60-492A-B975-AACB07C37ACE}.Debug|x64.Build.0 = Debug|x64
+		{C6BC542E-3C60-492A-B975-AACB07C37ACE}.Release|x64.ActiveCfg = Release|x64
+		{C6BC542E-3C60-492A-B975-AACB07C37ACE}.Release|x64.Build.0 = Release|x64
+		{B12702AD-ABFB-343A-A199-8E24837244A3}.Debug|x64.ActiveCfg = Debug|x64
+		{B12702AD-ABFB-343A-A199-8E24837244A3}.Debug|x64.Build.0 = Debug|x64
+		{B12702AD-ABFB-343A-A199-8E24837244A3}.Release|x64.ActiveCfg = Release|x64
+		{B12702AD-ABFB-343A-A199-8E24837244A3}.Release|x64.Build.0 = Release|x64
+		{5857969C-CEB8-4BF3-BACB-81D7CE0FC654}.Debug|x64.ActiveCfg = Debug|x64
+		{5857969C-CEB8-4BF3-BACB-81D7CE0FC654}.Debug|x64.Build.0 = Debug|x64
+		{5857969C-CEB8-4BF3-BACB-81D7CE0FC654}.Release|x64.ActiveCfg = Release|x64
+		{5857969C-CEB8-4BF3-BACB-81D7CE0FC654}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0EE172E6-0AFE-49E9-AB23-96FB9C5FFFF9}
+	EndGlobalSection
+EndGlobal

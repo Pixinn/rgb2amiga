@@ -1,0 +1,9 @@
+copy %MAGICK_HOME%\VisualMagick\bin\CORE_RL_magick_.dll %1
+copy "%MAGICK_HOME%\VisualMagick\bin\CORE_RL_Magick++_.dll" %1
+copy %MAGICK_HOME%\VisualMagick\bin\CORE_RL_png_.dll %1
+copy %MAGICK_HOME%\VisualMagick\bin\CORE_RL_wand_.dll %1
+copy %MAGICK_HOME%\VisualMagick\bin\IM_MOD_RL_bmp_.dll %1
+copy %MAGICK_HOME%\VisualMagick\bin\IM_MOD_RL_jpeg_.dll %1
+copy %MAGICK_HOME%\VisualMagick\bin\IM_MOD_RL_png_.dll %1
+copy %MAGICK_HOME%\VisualMagick\bin\IM_MOD_RL_tiff_.dll %1
+copy %MAGICK_HOME%\VisualMagick\bin\IM_MOD_RL_webp_.dll %1

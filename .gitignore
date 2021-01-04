@@ -1,0 +1,15 @@
+*.sdf
+*.suo
+*.opensdf
+*.lib
+*.tlog
+*.log
+*.obj
+*.exe
+*.pdb
+*.idb
+*.lastbuildstate
+**/bin/
+.build/
+.vs/
+**/x64/
