@@ -9,6 +9,7 @@
 *.pdb
 *.idb
 *.lastbuildstate
+*.vcxproj.user
 **/bin/
 .build/
 .vs/

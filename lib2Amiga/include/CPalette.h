@@ -54,9 +54,12 @@ struct rgb8Bits_t{
     const unsigned sz_quantum = sizeof(T);
     const unsigned rounder = sz_quantum > 1 ? 0x80 << (sz_quantum - 2) : 0;
     const unsigned shift = 8 * (sz_quantum - 1);
-    r = ((red + rounder) >> shift) & 0xFF;
-    g = ((green + rounder) >> shift) & 0xFF;
-    b = ((blue + rounder) >> shift) & 0xFF;  
+    unsigned round = red < (1 << 8*sz_quantum) - rounder ? rounder : 0;
+    r = ((red + round) >> shift) & 0xFF;
+    round = green < (1 << 8*sz_quantum) - rounder ? rounder : 0;
+    g = ((green + round) >> shift) & 0xFF;
+    round = blue < (1 << 8*sz_quantum) - rounder ? rounder : 0;
+    b = ((blue + round) >> shift) & 0xFF;
   }
 
   inline unsigned int Hash(void) const {
@@ -77,12 +80,8 @@ struct rgb8Bits_t{
     const auto dv = (v1 - v2);
 
     return (dy * dy + du * du + dv * dv);
-
-      //int dr = (r - color.r);
-      //int dg = (g - color.g);
-      //int db = (b - color.b);
-      //return (dr*dr + dg*dg + db*db);
   }
+
 
   inline bool operator== (const rgb8Bits_t& other) const {
       return (r == other.r) && (g == other.g) && (b == other.b);
@@ -98,33 +97,21 @@ struct rgb8Bits_t{
 /******************************/
 /*       CLASS CPALETTE       */
 /******************************/
-class CPalette
+class CPalette : public std::vector<rgb8Bits_t>
 {
 public:
     CPalette( void )
     {}
     CPalette(const unordered_map < unsigned int, rgb8Bits_t >& colors);
+    CPalette(const std::vector<rgb8Bits_t >& colors);
 
-    rgb8Bits_t NearestColor(const rgb8Bits_t& color) const; //Returns the nearest color in the palette
-
-    inline const vector < rgb8Bits_t >& GetColors(void) const {
-        return _data;
-    }
+    rgb8Bits_t GetNearestColor(const rgb8Bits_t& color) const; //Returns the nearest color in the palette 
     
-    //Facades to _data
-    inline void PushBack(const rgb8Bits_t& color) {
-        _data.push_back(color);
-    }
-    inline std::size_t Size(void) const {
-        return _data.size();
-    }
-    inline rgb8Bits_t* Data(void) {
-        return _data.data();
-    }
-
-
 private:
-    vector < rgb8Bits_t > _data;
+
+  /// @brief Sorting colors in palette to help editing width Deluxe Paint
+  ///  @details PLUS: having black as colors 0 appears to help color fidelity on the *real* hardware
+  void Sort();
 };
 
 

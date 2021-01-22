@@ -43,7 +43,7 @@ void CAmigaImage::Init( CChunkyImage& image )
     _pBitplanes = new uint8_t[BITPLANE_DEPTH_MAX * bitplaneSz];
 
     //Setting up the "viewport"
-    _viewport.bitplaneDepth = { static_cast<unsigned int>(std::ceil(std::log2(image.GetPalette().Size()))) };
+    _viewport.bitplaneDepth = { static_cast<unsigned int>(std::ceil(std::log2(image.GetPalette().size()))) };
     _viewport.viewportMode = 0;
     _viewport.width = static_cast<uint16_t>(image.GetWidth());
     _viewport.height = static_cast<uint16_t>(image.GetHeight());
@@ -54,8 +54,8 @@ void CAmigaImage::Init( CChunkyImage& image )
     amiVideo_setScreenBitplanePointers(_screen, _viewport.bitplanes);//Set the bitplane pointers to the pointers in the viewport
     
     //Setting up the input palette
-    _screen->palette.chunkyFormat.numOfColors = static_cast<unsigned>(image.GetPalette().Size());
-    amiVideo_setChunkyPaletteColors(&(_screen->palette), (amiVideo_OutputColor*)(image.GetPalette().Data()), static_cast<unsigned>(image.GetPalette().Size()));
+    _screen->palette.chunkyFormat.numOfColors = static_cast<unsigned>(image.GetPalette().size());
+    amiVideo_setChunkyPaletteColors(&(_screen->palette), (amiVideo_OutputColor*)(image.GetPalette().data()), static_cast<unsigned>(image.GetPalette().size()));
 
     //Setting up the image data
     unsigned int pitch = 0; // !! Ask the author of libilbm for a hint to the correct value...

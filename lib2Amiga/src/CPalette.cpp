@@ -18,6 +18,7 @@
 #include <unordered_map>
 #include <algorithm>
 #include <limits>
+#include <iostream>
 
 #include "CPalette.h"
 
@@ -28,23 +29,23 @@ CPaletteFactory* CPaletteFactory::_Instance = nullptr;
 CPalette::CPalette(const unordered_map<unsigned int, rgb8Bits_t>& colors)
 {
     for (auto color : colors) {
-        _data.push_back(color.second);
+        push_back(color.second);
     }
-    //Sorting colors in palette to help editing width Deluxe Paint
-    //PLUS: having black as colors 0 appears to help color fidelity on the *real* hardware
-    std::sort(_data.begin(), _data.end());
-    auto pLastColor = _data.end() - 1;
-    auto lightest = *pLastColor;
-    *pLastColor = _data[1];
-    _data[1] = lightest;
+    Sort();
+}
+CPalette::CPalette(const std::vector<rgb8Bits_t >& colors)
+  : std::vector<rgb8Bits_t>{ colors }
+{
+  Sort();
 }
 
 
-rgb8Bits_t CPalette::NearestColor(const rgb8Bits_t& color) const
+
+rgb8Bits_t CPalette::GetNearestColor(const rgb8Bits_t& color) const
 {
     auto minDistance = std::numeric_limits<double>::max();
     rgb8Bits_t colorFound;
-    for (auto colorInPalette : _data)
+    for (auto colorInPalette : *this)
     {
         const auto newDistance = colorInPalette.Distance(color);
         if (newDistance < minDistance) {
@@ -53,6 +54,15 @@ rgb8Bits_t CPalette::NearestColor(const rgb8Bits_t& color) const
         }
     }
     return colorFound;
+}
+
+void CPalette::Sort()
+{
+  std::sort(this->begin(), this->end());
+  auto pLastColor = this->end() - 1;
+  auto lightest = *pLastColor;
+  *pLastColor = (*this)[1];
+  (*this)[1] = lightest;
 }
 
 
@@ -71,7 +81,7 @@ void CPaletteFactory::GenerateAmiga()
     for (auto red = 0; red <= amigaChannelMax; red++)  {
         for (auto green = 0; green <= amigaChannelMax; green++) {
             for (auto blue = 0; blue <= amigaChannelMax; blue++) {
-                _amiga.PushBack(Get8bitRGB(red, green, blue));
+                _amiga.push_back(Get8bitRGB(red, green, blue));
             }
         }
     }
@@ -79,38 +89,38 @@ void CPaletteFactory::GenerateAmiga()
 
 void CPaletteFactory::GenerateAmigaReduced()
 {
-    _amiga_reduced.PushBack( Get8bitRGB(0x0, 0x0, 0x0) );
-    _amiga_reduced.PushBack( Get8bitRGB(0xA, 0xA, 0xA) );
-    _amiga_reduced.PushBack( Get8bitRGB(0xE, 0x0, 0x0) );
-    _amiga_reduced.PushBack( Get8bitRGB(0xA, 0x0, 0x0) );
-    _amiga_reduced.PushBack( Get8bitRGB(0xD, 0x8, 0x0) );
-    _amiga_reduced.PushBack( Get8bitRGB(0xF, 0xE, 0x0) );
-    _amiga_reduced.PushBack( Get8bitRGB(0x8, 0xF, 0x0) );
-    _amiga_reduced.PushBack( Get8bitRGB(0x0, 0x8, 0x0) );
-    _amiga_reduced.PushBack( Get8bitRGB(0x0, 0xB, 0x0) );
-    _amiga_reduced.PushBack( Get8bitRGB(0x0, 0xD, 0xD) );
-    _amiga_reduced.PushBack( Get8bitRGB(0x0, 0xA, 0xF) );
-    _amiga_reduced.PushBack( Get8bitRGB(0x0, 0x7, 0xC) );
-    _amiga_reduced.PushBack( Get8bitRGB(0x0, 0x0, 0xF) );
-    _amiga_reduced.PushBack( Get8bitRGB(0x7, 0x0, 0xF) );
-    _amiga_reduced.PushBack( Get8bitRGB(0xC, 0x0, 0xE) );
-    _amiga_reduced.PushBack( Get8bitRGB(0xC, 0x0, 0x8) );
-    _amiga_reduced.PushBack( Get8bitRGB(0x6, 0x2, 0x0) );
-    _amiga_reduced.PushBack( Get8bitRGB(0xE, 0x5, 0x2) );
-    _amiga_reduced.PushBack( Get8bitRGB(0xA, 0x5, 0x2) );
-    _amiga_reduced.PushBack( Get8bitRGB(0xF, 0xC, 0xA) );
-    _amiga_reduced.PushBack( Get8bitRGB(0x3, 0x3, 0x3) );
-    _amiga_reduced.PushBack( Get8bitRGB(0x4, 0x4, 0x4) );
-    _amiga_reduced.PushBack( Get8bitRGB(0x5, 0x5, 0x5) );
-    _amiga_reduced.PushBack( Get8bitRGB(0x6, 0x6, 0x6) );
-    _amiga_reduced.PushBack( Get8bitRGB(0x7, 0x7, 0x7) );
-    _amiga_reduced.PushBack( Get8bitRGB(0x8, 0x8, 0x8) );
-    _amiga_reduced.PushBack( Get8bitRGB(0x9, 0x9, 0x9) );
-    _amiga_reduced.PushBack( Get8bitRGB(0xA, 0xA, 0xA) );
-    _amiga_reduced.PushBack( Get8bitRGB(0xC, 0xC, 0xC) );
-    _amiga_reduced.PushBack( Get8bitRGB(0xD, 0xD, 0xD) );
-    _amiga_reduced.PushBack( Get8bitRGB(0xE, 0xE, 0xE) );
-    _amiga_reduced.PushBack( Get8bitRGB(0xF, 0xF, 0xF) );
+    _amiga_reduced.push_back( Get8bitRGB(0x0, 0x0, 0x0) );
+    _amiga_reduced.push_back( Get8bitRGB(0xA, 0xA, 0xA) );
+    _amiga_reduced.push_back( Get8bitRGB(0xE, 0x0, 0x0) );
+    _amiga_reduced.push_back( Get8bitRGB(0xA, 0x0, 0x0) );
+    _amiga_reduced.push_back( Get8bitRGB(0xD, 0x8, 0x0) );
+    _amiga_reduced.push_back( Get8bitRGB(0xF, 0xE, 0x0) );
+    _amiga_reduced.push_back( Get8bitRGB(0x8, 0xF, 0x0) );
+    _amiga_reduced.push_back( Get8bitRGB(0x0, 0x8, 0x0) );
+    _amiga_reduced.push_back( Get8bitRGB(0x0, 0xB, 0x0) );
+    _amiga_reduced.push_back( Get8bitRGB(0x0, 0xD, 0xD) );
+    _amiga_reduced.push_back( Get8bitRGB(0x0, 0xA, 0xF) );
+    _amiga_reduced.push_back( Get8bitRGB(0x0, 0x7, 0xC) );
+    _amiga_reduced.push_back( Get8bitRGB(0x0, 0x0, 0xF) );
+    _amiga_reduced.push_back( Get8bitRGB(0x7, 0x0, 0xF) );
+    _amiga_reduced.push_back( Get8bitRGB(0xC, 0x0, 0xE) );
+    _amiga_reduced.push_back( Get8bitRGB(0xC, 0x0, 0x8) );
+    _amiga_reduced.push_back( Get8bitRGB(0x6, 0x2, 0x0) );
+    _amiga_reduced.push_back( Get8bitRGB(0xE, 0x5, 0x2) );
+    _amiga_reduced.push_back( Get8bitRGB(0xA, 0x5, 0x2) );
+    _amiga_reduced.push_back( Get8bitRGB(0xF, 0xC, 0xA) );
+    _amiga_reduced.push_back( Get8bitRGB(0x3, 0x3, 0x3) );
+    _amiga_reduced.push_back( Get8bitRGB(0x4, 0x4, 0x4) );
+    _amiga_reduced.push_back( Get8bitRGB(0x5, 0x5, 0x5) );
+    _amiga_reduced.push_back( Get8bitRGB(0x6, 0x6, 0x6) );
+    _amiga_reduced.push_back( Get8bitRGB(0x7, 0x7, 0x7) );
+    _amiga_reduced.push_back( Get8bitRGB(0x8, 0x8, 0x8) );
+    _amiga_reduced.push_back( Get8bitRGB(0x9, 0x9, 0x9) );
+    _amiga_reduced.push_back( Get8bitRGB(0xA, 0xA, 0xA) );
+    _amiga_reduced.push_back( Get8bitRGB(0xC, 0xC, 0xC) );
+    _amiga_reduced.push_back( Get8bitRGB(0xD, 0xD, 0xD) );
+    _amiga_reduced.push_back( Get8bitRGB(0xE, 0xE, 0xE) );
+    _amiga_reduced.push_back( Get8bitRGB(0xF, 0xF, 0xF) );
 }
 
 const CPalette& CPaletteFactory::GetPalette(const string& key ) const
@@ -148,9 +158,8 @@ CPalette CPaletteFactory::MapPalette(const CPalette& palette, const CPalette& sp
 {
     CPalette nearestColors;
     
-    const auto& colors = palette.GetColors();
-    for (const auto& color : colors) {
-        nearestColors.PushBack( space.NearestColor(color) );
+    for (const auto& color : palette) {
+        nearestColors.push_back( space.GetNearestColor(color) );
     }
 
     return nearestColors;

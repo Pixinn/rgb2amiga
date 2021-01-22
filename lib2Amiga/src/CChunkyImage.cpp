@@ -18,12 +18,12 @@
 #include <sstream>
 #include <cstdint>
 #include <cmath>
+#include <cassert>
 
 #include "CError.h"
 #include "CPalette.h"
 #include "CChunkyImage.h"
 
-using namespace Magick;
 
 
 void CChunkyImage::Init(const Image& img, const unsigned int nbColors, const bool dither, const CPalette& paletteSpace, const string& size)
@@ -49,7 +49,7 @@ void CChunkyImage::Init(const Image& img, const unsigned int nbColors, const boo
       _imageRGB.sample(sz);
     }
   }
-  //id size's forced
+  //if size's forced
   else {
     if (mod != 0) {
       string msg("When size if forced, width must be multiple of 16.");
@@ -57,37 +57,41 @@ void CChunkyImage::Init(const Image& img, const unsigned int nbColors, const boo
     }
   }
 
+  // constrain the colors to the provided Palette
+  const auto nbPixels = _imageRGB.size().width() * _imageRGB.size().height();
+  MagickCore::PixelPacket* pixel = _imageRGB.getPixels(0, 0, _imageRGB.size().width(), _imageRGB.size().height());
+  for (std::size_t i = 0u; i < nbPixels; ++i)
+  {
+    const rgb8Bits_t curColor{ pixel->red , pixel->green, pixel->blue };
+    const auto nearestAmigaColor = paletteSpace.GetNearestColor(curColor);
+    pixel->red = nearestAmigaColor.r << (8 * (sizeof(pixel->red) - 1));
+    pixel->green = nearestAmigaColor.g << (8 * (sizeof(pixel->green) - 1));
+    pixel->blue = nearestAmigaColor.b << (8 * (sizeof(pixel->blue) - 1));
+    ++pixel;
+  }
+
   // quantize image to the nb colors provided
   _imageRGB.quantizeColors(nbColors);
   _imageRGB.quantizeDither(dither);
   _imageRGB.quantize();
 
-  PixelPacket* pixel = nullptr;
-  auto nbPixels = _imageRGB.size().width() * _imageRGB.size().height();
-  auto imageRgbPalette = CPaletteFactory::GetInstance().GetUniqueColors(_imageRGB);     //Get the palette of the image (ie. unique RGB colors)
-
-
-  // Convert Magick pixel to 8 bit PALETTIZED structure
-  // ie : put indexes of the colors
+  // get the palette and construct the color indexes
+  _palette = CPaletteFactory::GetInstance().GetUniqueColors(_imageRGB);
   pixel = _imageRGB.getPixels(0, 0, _imageRGB.size().width(), _imageRGB.size().height());
   for (unsigned int i = 0; i < nbPixels; i++)
   {
     rgb8Bits_t color{ pixel->red , pixel->green, pixel->blue };
     ++pixel;
-
-    const auto& colors = imageRgbPalette.GetColors();
-    const auto hColor = std::find(std::begin(colors), std::end(colors), color);
-    if (hColor == std::end(colors)) {
+    
+    const auto hColor = std::find(_palette.begin(), _palette.end(), color);
+    if (hColor == _palette.end()) {
       throw CError("Palette is too small.");
     }
     else {
-      const auto idx = static_cast<uint8_t>(hColor - std::begin(colors));
+      const auto idx = static_cast<uint8_t>(hColor - _palette.begin());
       _imageIdx.push_back(idx);
     }
   }
-
-  //5 - Create palette: Map image's RGB colors to the palette space provided
-  _palette = CPaletteFactory::GetInstance().MapPalette(imageRgbPalette, paletteSpace);
 
   _isInitialized = true;
 }

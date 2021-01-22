@@ -61,8 +61,10 @@ int main(int argc, char *argv[])
         //Converting
         bool dithering = (argDither.getValue() != "false");
         CPalette palette = CPaletteFactory::GetInstance().GetPalette("AMIGA");
+        
         CChunkyImage chunkyImg;
         chunkyImg.Init(imgInput, argNbColors.getValue(), dithering, palette, argSize.getValue());
+
         CAmigaImage amigaImg;
         amigaImg.Init(chunkyImg);
         amigaImg.Save(argOutput.getValue());
