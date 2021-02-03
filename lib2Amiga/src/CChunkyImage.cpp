@@ -73,6 +73,8 @@ void CChunkyImage::Init(const Image& img, const unsigned int nbColors, const boo
   // quantize image to the nb colors provided
   _imageRGB.quantizeColors(nbColors);
   _imageRGB.quantizeDither(dither);
+  _imageRGB.quantizeDitherMethod(Magick::FloydSteinbergDitherMethod);
+  //_imageRGB.orderedDither("o3x3,2");
   _imageRGB.quantize();
 
   // get the palette and construct the color indexes

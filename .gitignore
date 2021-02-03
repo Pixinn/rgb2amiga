@@ -11,6 +11,6 @@
 *.lastbuildstate
 *.vcxproj.user
 **/bin/
-.build/
-.vs/
-**/x64/
+**/build/
+**/build_/
+**/.vs/

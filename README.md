@@ -1,8 +1,8 @@
-**amiga2rgb** is a small program to convert a modern RGB image (jpeg, png, etc.) to an IFF/ILMB tailored for the Amiga 500.
+**amiga2rgb** is a small program to convert a modern RGB image (jpeg, png, etc.) to an IFF/ILMB tailored for the Amiga 500. 
 
 ## How to use
 
->  Rgb2Amiga.exe  [-s <string>] [-d <string>] [-c <string>] -o <string> -i string> [--] [--version] [-h]
+>  Rgb2Amiga  [-s <string>] [-d <string>] [-c <string>] -o <string> -i string> [--] [--version] [-h]
 
 Where:
 

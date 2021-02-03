@@ -17,7 +17,7 @@
 
 
 #include <string>
-#include <Magick++.h> 
+//#include <Magick++.h> 
 #include <iostream> 
 #include "tclap/CmdLine.h"
 
