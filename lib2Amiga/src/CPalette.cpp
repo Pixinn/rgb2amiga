@@ -26,25 +26,25 @@
 CPaletteFactory* CPaletteFactory::_Instance = nullptr;
 
 //+++++++++ CPALETTE ++++++++++++//
-CPalette::CPalette(const unordered_map<unsigned int, rgb8Bits_t>& colors)
+CPalette::CPalette(const unordered_map<unsigned int, rgba8Bits_t>& colors)
 {
     for (auto color : colors) {
         push_back(color.second);
     }
     Sort();
 }
-CPalette::CPalette(const std::vector<rgb8Bits_t >& colors)
-  : std::vector<rgb8Bits_t>{ colors }
+CPalette::CPalette(const std::vector<rgba8Bits_t >& colors)
+  : std::vector<rgba8Bits_t>{ colors }
 {
   Sort();
 }
 
 
 
-rgb8Bits_t CPalette::GetNearestColor(const rgb8Bits_t& color) const
+rgba8Bits_t CPalette::GetNearestColor(const rgba8Bits_t& color) const
 {
     auto minDistance = std::numeric_limits<double>::max();
-    rgb8Bits_t colorFound;
+    rgba8Bits_t colorFound;
     for (auto colorInPalette : *this)
     {
         const auto newDistance = colorInPalette.Distance(color);
@@ -134,12 +134,12 @@ const CPalette& CPaletteFactory::GetPalette(const string& key ) const
 
 CPalette CPaletteFactory::GetUniqueColors(Magick::Image& image) const
 {
-    std::unordered_map<unsigned int, rgb8Bits_t> uniqueColors;
+    std::unordered_map<unsigned int, rgba8Bits_t> uniqueColors;
     PixelPacket* pixel = image.getPixels(0,0,image.size().width(), image.size().height());
     
     for (unsigned int i = 0; i < image.size().width() * image.size().height(); i++)
     {
-        rgb8Bits_t color{ pixel->red, pixel->green, pixel->blue };
+        rgba8Bits_t color{ pixel->red, pixel->green, pixel->blue };
         ++pixel;
 
         //Add color if not present in unique colors colection

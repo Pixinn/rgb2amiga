@@ -34,39 +34,42 @@ using namespace std;
 
 
 //MUST BE BIT EXACT BITH "amiVideo_Color"
-struct rgb8Bits_t{
+struct rgba8Bits_t
+{
  
   uint8_t r = 0;
   uint8_t g = 0;
   uint8_t b = 0;
-  uint8_t padding = 0;
+  uint8_t a = 0xff;
 
   static constexpr double LUMA_RED = 0.299;
   static constexpr double LUMA_GREEN = 0.587;
   static constexpr double LUMA_BLUE = 0.114;
 
-  rgb8Bits_t(void)
+  rgba8Bits_t(void)
   {    }
 
   template<typename T>
-  rgb8Bits_t(const T red, const T green, const T blue)
+  rgba8Bits_t(const T red, const T green, const T blue, const T alpha = std::numeric_limits<T>::max())
   {    
-    const unsigned sz_quantum = sizeof(T);
-    const unsigned rounder = sz_quantum > 1 ? 0x80 << (sz_quantum - 2) : 0;
-    const unsigned shift = 8 * (sz_quantum - 1);
+    constexpr unsigned sz_quantum = sizeof(T);
+    constexpr unsigned rounder = sz_quantum > 1 ? 0x80 << (sz_quantum - 2) : 0;
+    constexpr unsigned shift = 8 * (sz_quantum - 1);
     unsigned round = red < (1 << 8*sz_quantum) - rounder ? rounder : 0;
     r = ((red + round) >> shift) & 0xFF;
     round = green < (1 << 8*sz_quantum) - rounder ? rounder : 0;
     g = ((green + round) >> shift) & 0xFF;
     round = blue < (1 << 8*sz_quantum) - rounder ? rounder : 0;
     b = ((blue + round) >> shift) & 0xFF;
+    round = alpha < (1 << 8 * sz_quantum) - rounder ? rounder : 0;
+    a = ((alpha + round) >> shift) & 0xFF;
   }
 
   inline unsigned int Hash(void) const {
       return static_cast < unsigned int > ( (r << 16) | (g << 8) | b );
   }
 
-  inline double Distance(const rgb8Bits_t& color ) const
+  inline double Distance(const rgba8Bits_t& color ) const
   {
     const auto y1 = LUMA_RED * r + LUMA_GREEN * g + LUMA_BLUE * b;
     const auto u1 = 0.492 * (b - y1);
@@ -83,11 +86,11 @@ struct rgb8Bits_t{
   }
 
 
-  inline bool operator== (const rgb8Bits_t& other) const {
+  inline bool operator== (const rgba8Bits_t& other) const {
       return (r == other.r) && (g == other.g) && (b == other.b);
   }
 
-  inline bool operator<(const rgb8Bits_t& other) const { //Returns true if this' luma < other's luma
+  inline bool operator<(const rgba8Bits_t& other) const { //Returns true if this' luma < other's luma
       return((LUMA_RED * r + LUMA_GREEN * g + LUMA_BLUE * b) < (LUMA_RED * other.r + LUMA_GREEN * other.g + LUMA_BLUE * other.b));
   }
 } ;
@@ -97,15 +100,15 @@ struct rgb8Bits_t{
 /******************************/
 /*       CLASS CPALETTE       */
 /******************************/
-class CPalette : public std::vector<rgb8Bits_t>
+class CPalette : public std::vector<rgba8Bits_t>
 {
 public:
     CPalette( void )
     {}
-    CPalette(const unordered_map < unsigned int, rgb8Bits_t >& colors);
-    CPalette(const std::vector<rgb8Bits_t >& colors);
+    CPalette(const unordered_map < unsigned int, rgba8Bits_t >& colors);
+    CPalette(const std::vector<rgba8Bits_t >& colors);
 
-    rgb8Bits_t GetNearestColor(const rgb8Bits_t& color) const; //Returns the nearest color in the palette 
+    rgba8Bits_t GetNearestColor(const rgba8Bits_t& color) const; //Returns the nearest color in the palette 
     
 private:
 
@@ -144,8 +147,8 @@ private:
     void GenerateAmigaReduced(void);
     void GenerateAmiga(void);
     //Converts 4 bit color triplet to 8 bit color
-    inline rgb8Bits_t Get8bitRGB(uint8_t red, uint8_t green, uint8_t blue) {
-        rgb8Bits_t color;
+    inline rgba8Bits_t Get8bitRGB(uint8_t red, uint8_t green, uint8_t blue) {
+      rgba8Bits_t color;
         color.r = red * 17;
         color.g = green * 17;
         color.b = blue * 17;

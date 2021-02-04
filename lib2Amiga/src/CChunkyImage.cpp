@@ -62,7 +62,7 @@ void CChunkyImage::Init(const Image& img, const unsigned int nbColors, const boo
   MagickCore::PixelPacket* pixel = _imageRGB.getPixels(0, 0, _imageRGB.size().width(), _imageRGB.size().height());
   for (std::size_t i = 0u; i < nbPixels; ++i)
   {
-    const rgb8Bits_t curColor{ pixel->red , pixel->green, pixel->blue };
+    const rgba8Bits_t curColor{ pixel->red , pixel->green, pixel->blue };
     const auto nearestAmigaColor = paletteSpace.GetNearestColor(curColor);
     pixel->red = nearestAmigaColor.r << (8 * (sizeof(pixel->red) - 1));
     pixel->green = nearestAmigaColor.g << (8 * (sizeof(pixel->green) - 1));
@@ -82,7 +82,7 @@ void CChunkyImage::Init(const Image& img, const unsigned int nbColors, const boo
   pixel = _imageRGB.getPixels(0, 0, _imageRGB.size().width(), _imageRGB.size().height());
   for (unsigned int i = 0; i < nbPixels; i++)
   {
-    rgb8Bits_t color{ pixel->red , pixel->green, pixel->blue };
+    rgba8Bits_t color{ pixel->red , pixel->green, pixel->blue };
     ++pixel;
     
     const auto hColor = std::find(_palette.begin(), _palette.end(), color);

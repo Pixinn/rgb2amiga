@@ -32,12 +32,11 @@ public:
 
     inline bool IsInitialized() const { return _isInitialized; }
 
-    inline std::size_t GetWidth(void) const { return _imageRGB.size().width(); }
-    inline std::size_t GetHeight(void) const { return _imageRGB.size().height(); }
+    inline int GetWidth(void) const { return static_cast<int>(_imageRGB.size().width()); }
+    inline int GetHeight(void) const { return static_cast<int>(_imageRGB.size().height()); }
 
-    inline Magick::Image&   GetImageRgb(void) { return _imageRGB; }
-    inline std::vector< uint8_t >& GetPixels(void) { return _imageIdx; }
-    inline CPalette&  GetPalette(void) { return _palette; }    
+    inline const std::vector< uint8_t >& GetPixels(void) const { return _imageIdx; }
+    inline const CPalette&  GetPalette(void) const { return _palette; }
 
 private:
     void Map() //Maps the colors of_image those of _palette
