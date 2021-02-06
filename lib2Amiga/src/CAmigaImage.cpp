@@ -86,8 +86,8 @@ CAmigaImage::~CAmigaImage(void)
 
 
 void CAmigaImage::Save(const string & filepath)
-{
-    ILBM_Image *image = ILBM_createImage("ILBM");
+{   
+    ILBM_Image *image = ILBM_createImage(const_cast<char*>("ILBM"));
 
     //Header
     ILBM_BitMapHeader *header = ILBM_createBitMapHeader(); //Create bitmap header properties

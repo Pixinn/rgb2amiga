@@ -12,5 +12,5 @@
 *.vcxproj.user
 **/bin/
 **/build/
-**/build_/
+**/build_*/
 **/.vs/

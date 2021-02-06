@@ -112,6 +112,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE  ${APP_DIR}/tclap
 )
 target_link_libraries(${PROJECT_NAME} ${ImageMagick_LIBRARIES} ${SDL2_LIBRARIES} 2Amiga ilbm iff amivideo)    
 set_property(TARGET ${PROJECT_NAME} PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG})
+target_compile_definitions( ${PROJECT_NAME} PRIVATE MAGICKCORE_QUANTUM_DEPTH=16 MAGICKCORE_HDRI_ENABLE=0)
 
 # Windows only: copy dlls
 if(WIN32)

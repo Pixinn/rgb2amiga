@@ -33,8 +33,8 @@ using namespace Magick;
 
 void SdlError(const std::string& error,
     SDL_Window* const pWindow = nullptr,
-    SDL_Renderer* const pRenderer = nullptr,
-    SDL_Surface* pSurface = nullptr)
+    SDL_Renderer* const pRenderer = nullptr
+)
 {
     std::cout << "Error: " << error << '\n';
 
@@ -43,10 +43,7 @@ void SdlError(const std::string& error,
     }
     if (pWindow != nullptr) {
       SDL_DestroyWindow(pWindow);
-    }
-    if (pSurface != nullptr) {
-      SDL_FreeSurface(pSurface);
-    }   
+    } 
     SDL_Quit();
 
     exit(1);
@@ -148,7 +145,7 @@ void DisplayPreview(const CChunkyImage& img)
 
   SDL_Texture* pTexture = SDL_CreateTexture(pRenderer, SDL_PIXELFORMAT_BGR888, SDL_TEXTUREACCESS_STATIC, img.GetWidth(), img.GetHeight());
   if (pTexture == nullptr) {
-    SdlError("cannot initialise the preview window.", pWindow, pRenderer/*, pSurface*/);
+    SdlError("cannot initialise the preview window.", pWindow, pRenderer);
   }
 
   std::vector<rgba8Bits_t> buffer;
@@ -174,7 +171,6 @@ void DisplayPreview(const CChunkyImage& img)
     }
   }
 
-  //SDL_FreeSurface(pSurface);
   SDL_DestroyTexture(pTexture);
   SDL_DestroyRenderer(pRenderer);
   SDL_DestroyWindow(pWindow);
