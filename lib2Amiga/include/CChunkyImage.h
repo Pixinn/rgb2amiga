@@ -24,12 +24,12 @@
 
 #include <Magick++.h>
 
+class CChunkyImageFactory;
 
 class CChunkyImage
 {
+    friend CChunkyImageFactory;
 public:
-    void Init(const Magick::Image&, const unsigned int nbColors, const bool dither, const CPalette&, const string& size);
-
     inline bool IsInitialized() const { return _isInitialized; }
 
     inline int GetWidth(void) const { return static_cast<int>(_imageRGB.size().width()); }
@@ -37,6 +37,8 @@ public:
 
     inline const std::vector< uint8_t >& GetPixels(void) const { return _imageIdx; }
     inline const CPalette&  GetPalette(void) const { return _palette; }
+
+    void Save(const string& filename);
 
 private:
     void Map() //Maps the colors of_image those of _palette
@@ -46,6 +48,20 @@ private:
     std::vector< uint8_t > _imageIdx;
     CPalette _palette;
     bool _isInitialized = false;
+};
+
+class CChunkyImageFactory
+{
+public:
+    void Init(const Magick::Image&, const unsigned int nbColors, const bool dither, const CPalette&);
+
+    inline CChunkyImage GetImage(const string& size) const { return GetImage(_imageRGB.size(), size); }
+
+    CChunkyImage GetImage(Magick::Geometry area, const string& size) const;
+
+private:
+    Magick::Image _imageRGB;    
+    CPalette _palette;
 
     static const unsigned int OCS_MAX_COLORS = 32;
 };
