@@ -49,7 +49,7 @@ void SdlError(const std::string& error,
     exit(1);
 }
 
-void DisplayPreview(const CChunkyImage& img);
+void DisplayPreview(const CChunkyImage& img, const int scale);
 
 //**********************************//
 // Required arguments:
@@ -65,9 +65,9 @@ int main(int argc, char *argv[])
         TCLAP::ValueArg<string> argInput{ "i", "input", "Input file to process.", true, "", "string" };
         TCLAP::ValueArg<string> argOutput("o", "output", "Output file.", true, "", "string");
         TCLAP::ValueArg<int>    argNbColors("c", "colors", "Number of colors to use. Defaults to \"32\".", false, 32, "string");
-        TCLAP::ValueArg<string> argSize("s", "size", "Targeted size in WidthxHeight format. Defaults to \"320x256\"\n\tOptionnal suffix: '!' ignore the original aspect ratio.", false, "320x256", "string");
+        TCLAP::ValueArg<string> argSize("s", "size", "Targeted size in WidthxHeight format. Defaults to \"320x256\"\n\tOptionnal suffix: '!' ignore the original aspect ratio. Only '!': keep input size", false, "320x256", "string");
         TCLAP::SwitchArg argDither("d", "dither", "Use dithering.");
-        TCLAP::SwitchArg argPreview("p", "preview", "Open a window to display a preview.");
+        TCLAP::ValueArg<int> argPreview("p", "preview", "Open a window to display a scaled preview. Defaults to no preview.", false, 0, "scale");
         cmd.add(argInput);
         cmd.add(argOutput);
         cmd.add(argNbColors);
@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
 
         // Display the preview if requested
         if (argPreview.getValue()) {
-          DisplayPreview(chunkyImg);
+          DisplayPreview(chunkyImg, argPreview.getValue());
         }
          
     }
@@ -116,11 +116,9 @@ int main(int argc, char *argv[])
 }
 
 
-void DisplayPreview(const CChunkyImage& img)
+void DisplayPreview(const CChunkyImage& img, const int scale)
 {
   
-  constexpr int scale = 3;
-
   // init
   if (SDL_Init(SDL_INIT_VIDEO) != 0) {
     SdlError("cannot initialise the preview window.");

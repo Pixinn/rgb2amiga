@@ -36,24 +36,26 @@ void CChunkyImage::Init(const Image& img, const unsigned int nbColors, const boo
   }
 
   _imageRGB = img;
-  // resize : width must be a multiple of 16!
-  Geometry sz(size);
-  _imageRGB.sample(sz);
-  const auto newWidth = _imageRGB.size().width();
-  const auto mod = newWidth % 16;
-  // if size's not forced
-  if (size.find("!") == std::string::npos) {
-    if (mod != 0) { //Fit the image in a width multiple of 16
-      sz.width(newWidth - mod);
-      _imageRGB = img;
-      _imageRGB.sample(sz);
+  if (size != "!") {
+    // resize : width must be a multiple of 16!
+    Geometry sz(size);
+    _imageRGB.sample(sz);
+    const auto newWidth = _imageRGB.size().width();
+    const auto mod = newWidth % 16;
+    // if size's not forced
+    if (size.find("!") == std::string::npos) {
+      if (mod != 0) { //Fit the image in a width multiple of 16
+        sz.width(newWidth - mod);
+        _imageRGB = img;
+        _imageRGB.sample(sz);
+      }
     }
-  }
-  //if size's forced
-  else {
-    if (mod != 0) {
-      string msg("When size if forced, width must be multiple of 16.");
-      throw CError(msg);
+    //if size's forced
+    else {
+      if (mod != 0) {
+        string msg("When size if forced, width must be multiple of 16.");
+        throw CError(msg);
+      }
     }
   }
 
