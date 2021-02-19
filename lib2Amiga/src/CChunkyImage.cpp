@@ -87,27 +87,31 @@ void CChunkyImageFactory::Init(const Image& img, const unsigned int nbColors, co
 
   _imageRGB = img;
  
-  // constrain the colors to the provided Palette
-  const auto nbPixels = _imageRGB.size().width() * _imageRGB.size().height();
-  _imageRGB.modifyImage();
-  MagickCore::PixelPacket* pixel = _imageRGB.getPixels(0, 0, _imageRGB.size().width(), _imageRGB.size().height());
-  for (std::size_t i = 0u; i < nbPixels; ++i)
-  {
-    const rgba8Bits_t curColor{ pixel->red , pixel->green, pixel->blue };
-    const auto nearestAmigaColor = paletteSpace.GetNearestColor(curColor);
-    pixel->red = nearestAmigaColor.r << (8 * (sizeof(pixel->red) - 1));
-    pixel->green = nearestAmigaColor.g << (8 * (sizeof(pixel->green) - 1));
-    pixel->blue = nearestAmigaColor.b << (8 * (sizeof(pixel->blue) - 1));
-    ++pixel;
-  }
-  _imageRGB.syncPixels();
-
-  // quantize image to the nb colors provided
+  // Constrain the colors to the provided Palette. We cannot only use the
+  // default quantization, because that will introduce colorshifts to better
+  // represent neighbouring pixel regions, it does not respect the colors
+  // already in the image.
   _imageRGB.quantizeColors(nbColors);
   _imageRGB.quantizeDither(dither);
   _imageRGB.quantizeDitherMethod(Magick::FloydSteinbergDitherMethod);
   //_imageRGB.orderedDither("o3x3,2");
   _imageRGB.quantize();
+  // now map the color reduced image using a map that only contains valid Amiga colors
+  CPalette quantizedPalette = CPaletteFactory::GetInstance().GetUniqueColors(_imageRGB);
+  Image map(Geometry(quantizedPalette.size(), 1), "white");
+  MagickCore::PixelPacket* pixel = map.getPixels(0, 0, map.size().width(), map.size().height());
+  for (std::size_t i = 0u; i < quantizedPalette.size(); ++i)
+  {
+    const auto nearestAmigaColor = paletteSpace.GetNearestColor(quantizedPalette[i]);
+    pixel->red = nearestAmigaColor.r << (8 * (sizeof(pixel->red) - 1));
+    pixel->green = nearestAmigaColor.g << (8 * (sizeof(pixel->green) - 1));
+    pixel->blue = nearestAmigaColor.b << (8 * (sizeof(pixel->blue) - 1));
+    ++pixel;
+  }
+  map.syncPixels();
+  // map again from the original, which can potentially match slightly better
+  _imageRGB = img;
+  _imageRGB.map(map, dither);
 
   _palette = CPaletteFactory::GetInstance().GetUniqueColors(_imageRGB);
 }
