@@ -6,6 +6,9 @@
 
 Where:
 
+	*   -f <format slection>,  --format <format slection>
+		Save as iff-ilbm (default) or png-gpl (PNG + Gimp palette).
+
 	*   p <scale>,  --preview <scale>
      	        Open a window to display a scaled preview. Defaults to no preview.
 
@@ -19,10 +22,10 @@ Where:
 	*   -c <string>,  --colors <string>		
 		Number of colors to use. Defaults to "32".
 		
-	*   -o <string>,  --output <string>
+	*   -o <string>,  --output <string>  (accepted multiple times)
 		(required)  Output file.
 
-	*   -i <string>,  --input <string>
+	*   -i <string>,  --input <string>  (accepted multiple times)
 		(required)  Input file to process.
 
 	*   --,  --ignore_rest
