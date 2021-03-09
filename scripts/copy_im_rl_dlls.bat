@@ -7,4 +7,5 @@ copy "%MAGICK_HOME%\VisualMagick\bin\IM_MOD_RL_jpeg_.dll" %1
 copy "%MAGICK_HOME%\VisualMagick\bin\IM_MOD_RL_png_.dll" %1
 copy "%MAGICK_HOME%\VisualMagick\bin\IM_MOD_RL_tiff_.dll" %1
 copy "%MAGICK_HOME%\VisualMagick\bin\IM_MOD_RL_webp_.dll" %1
+copy "%MAGICK_HOME%\VisualMagick\bin\IM_MOD_RL_xc_.dll" %1
 copy "%SDL2_HOME%\lib\x64\SDL2.dll" %1

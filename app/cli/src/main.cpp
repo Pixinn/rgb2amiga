@@ -87,7 +87,8 @@ int main(int argc, char *argv[])
         Image combinedImg(Geometry(0, 0), "black");
         size_t vOffset = 0;
         vector<pair<int, int>> widthsHeights;
-        for (auto inFile : argInput.getValue()) {
+        for (auto inFile : argInput.getValue())
+        {
           Image imgInput(inFile);
           size_t imgW = imgInput.size().width();
           size_t imgH = imgInput.size().height();
@@ -105,14 +106,16 @@ int main(int argc, char *argv[])
         // split the color-reduced image into the separate output images
         vector<CChunkyImage> chunkyImgs;
         vOffset = 0;
-        for (int i = 0; i < argInput.getValue().size(); i++) {
+        for (int i = 0; i < argInput.getValue().size(); i++)
+        {
           CChunkyImage chunkyImg = factory.GetImage(Geometry(widthsHeights[i].first, widthsHeights[i].second, 0, vOffset), argSize.getValue());
           chunkyImgs.push_back(chunkyImg);
           vOffset += widthsHeights[i].second;
         }
 
         vector<CAmigaImage> amigaImgs;
-        for (int i = 0; i < chunkyImgs.size(); i++) {
+        for (int i = 0; i < chunkyImgs.size(); i++)
+        {
           if (argFormat.getValue() == "iff-ilbm") {
             CAmigaImage amigaImg;
             amigaImg.Init(chunkyImgs[i]);
