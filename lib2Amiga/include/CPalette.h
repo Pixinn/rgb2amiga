@@ -108,6 +108,8 @@ public:
     CPalette(const unordered_map < unsigned int, rgba8Bits_t >& colors);
     CPalette(const std::vector<rgba8Bits_t >& colors);
 
+    void Save(const string& filename) const;
+
     rgba8Bits_t GetNearestColor(const rgba8Bits_t& color) const; //Returns the nearest color in the palette 
     
 private:

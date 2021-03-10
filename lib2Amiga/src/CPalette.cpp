@@ -18,6 +18,7 @@
 #include <unordered_map>
 #include <algorithm>
 #include <limits>
+#include <fstream>
 #include <iostream>
 
 #include "CPalette.h"
@@ -65,7 +66,20 @@ void CPalette::Sort()
   (*this)[1] = lightest;
 }
 
-
+void CPalette::Save(const string& filename) const
+{
+  ofstream outfile;
+  outfile.open(filename, ios::out | ios::trunc | ios::binary);
+  outfile << "GIMP Palette\n";
+  outfile << "Name: " << filename << "\n";
+  outfile << "Columns: 16\n";
+  outfile << "#\n";
+  outfile << std::dec;
+  for (auto color : *this) {
+    outfile << unsigned(color.r) << " " << unsigned(color.g) << " " << unsigned(color.b) << "\n";
+  }
+  outfile.close();
+}
 
 //+++++++++ CPALETTEFACTORY ++++++++++++//
 CPaletteFactory::CPaletteFactory(void)

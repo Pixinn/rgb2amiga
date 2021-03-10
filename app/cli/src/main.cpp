@@ -62,11 +62,12 @@ int main(int argc, char *argv[])
     {
         //Parsing arguments
         TCLAP::CmdLine cmd{ "rgb2amiga - by Christophe Meneboeuf <christophe@xtof.info>", ' ', "1" };
-        TCLAP::ValueArg<string> argInput{ "i", "input", "Input file to process.", true, "", "string" };
-        TCLAP::ValueArg<string> argOutput("o", "output", "Output file.", true, "", "string");
+        TCLAP::MultiArg<string> argInput{ "i", "input", "Input file to process.", true, "string" };
+        TCLAP::MultiArg<string> argOutput("o", "output", "Output file.", true, "string");
         TCLAP::ValueArg<int>    argNbColors("c", "colors", "Number of colors to use. Defaults to \"32\".", false, 32, "string");
         TCLAP::ValueArg<string> argSize("s", "size", "Targeted size in WidthxHeight format. Defaults to \"320x256\"\n\tOptionnal suffix: '!' ignore the original aspect ratio. Only '!': keep input size", false, "320x256", "string");
         TCLAP::SwitchArg argDither("d", "dither", "Use dithering.");
+        TCLAP::ValueArg<string> argFormat("f", "format", "Save as iff-ilbm (default) or png-gpl (PNG + Gimp palette).", false, "iff-ilbm", "format slection");
         TCLAP::ValueArg<int> argPreview("p", "preview", "Open a window to display a scaled preview. Defaults to no preview.", false, 0, "scale");
         cmd.add(argInput);
         cmd.add(argOutput);
@@ -74,28 +75,68 @@ int main(int argc, char *argv[])
         cmd.add(argSize);
         cmd.add(argDither);        
         cmd.add(argPreview);
+        cmd.add(argFormat);
         cmd.parse( argc, argv );
 
-        //Loading image 
-        Image imgInput( argInput.getValue() );
-        
-        //Converting
-        CPalette palette = CPaletteFactory::GetInstance().GetPalette("AMIGA");
-        
-        CChunkyImage chunkyImg;
-        chunkyImg.Init(imgInput, argNbColors.getValue(), argDither.getValue(), palette, argSize.getValue());
-
-        CAmigaImage amigaImg;
-        amigaImg.Init(chunkyImg);
-        amigaImg.Save(argOutput.getValue());
-
-        std::cout << '\n' << argOutput.getValue() << " saved." << '\n';
-
-        // Display the preview if requested
-        if (argPreview.getValue()) {
-          DisplayPreview(chunkyImg, argPreview.getValue());
+        if (argInput.getValue().size() != argOutput.getValue().size()) {
+          std::cerr << "Error: number of inputs and outputs must be the same" << std::endl;
+          return 1;
         }
-         
+
+        // Load all images into one big canvas
+        Image combinedImg(Geometry(0, 0), "black");
+        size_t vOffset = 0;
+        vector<pair<int, int>> widthsHeights;
+        for (auto inFile : argInput.getValue())
+        {
+          Image imgInput(inFile);
+          size_t imgW = imgInput.size().width();
+          size_t imgH = imgInput.size().height();
+          combinedImg.extent(Geometry(max(combinedImg.size().width(), imgW), combinedImg.size().height() + imgH), imgInput.backgroundColor());
+          combinedImg.copyPixels(imgInput, imgInput.size(), Offset(0, vOffset));
+          widthsHeights.push_back({ imgW, imgH });
+          vOffset += imgInput.size().height();
+        }
+
+        // Get the palette from the combined images, so they will all use the same
+        CPalette palette = CPaletteFactory::GetInstance().GetPalette("AMIGA");
+        CChunkyImageFactory factory;
+        factory.Init(combinedImg, argNbColors.getValue(), argDither.getValue(), palette);
+
+        // split the color-reduced image into the separate output images
+        vector<CChunkyImage> chunkyImgs;
+        vOffset = 0;
+        for (int i = 0; i < argInput.getValue().size(); i++)
+        {
+          CChunkyImage chunkyImg = factory.GetImage(Geometry(widthsHeights[i].first, widthsHeights[i].second, 0, vOffset), argSize.getValue());
+          chunkyImgs.push_back(chunkyImg);
+          vOffset += widthsHeights[i].second;
+        }
+
+        vector<CAmigaImage> amigaImgs;
+        for (int i = 0; i < chunkyImgs.size(); i++)
+        {
+          if (argFormat.getValue() == "iff-ilbm") {
+            CAmigaImage amigaImg;
+            amigaImg.Init(chunkyImgs[i]);
+            amigaImg.Save(argOutput.getValue()[i]);
+            std::cout << '\n' << argOutput.getValue()[i] << " saved." << '\n';
+          }
+          else if (argFormat.getValue() == "png-gpl") {
+            chunkyImgs[i].Save(argOutput.getValue()[i]+ ".png");
+            chunkyImgs[i].GetPalette().Save(argOutput.getValue()[i] + ".gpl");
+            std::cout << '\n' << argOutput.getValue()[i] << "{.png,.gpl} saved." << '\n';
+          }
+          else {
+            std::cerr << "Error: format must be one of iff-ilbm or png-gpl" << std::endl;
+            return 1;
+          }
+
+          // Display the preview if requested
+          if (argPreview.getValue()) {
+            DisplayPreview(chunkyImgs[i], argPreview.getValue());
+          }
+        }
     }
     catch (TCLAP::ArgException &e)  // catch any exceptions
     {

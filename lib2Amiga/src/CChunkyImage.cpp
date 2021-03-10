@@ -25,29 +25,24 @@
 #include "CChunkyImage.h"
 
 
-
-void CChunkyImage::Init(const Image& img, const unsigned int nbColors, const bool dither, const CPalette& paletteSpace, const string& size)
+CChunkyImage CChunkyImageFactory::GetImage(Geometry area, const string& size) const
 {
-  if (nbColors > OCS_MAX_COLORS || nbColors < 2) {
-    std::ostringstream maxColors;
-    maxColors << OCS_MAX_COLORS;
-    string msg("Number of colors must be between 2 and " + maxColors.str() + ".");
-    throw CError(msg);
-  }
+  Image img(_imageRGB, area);
+  CChunkyImage subImg;
+  subImg._imageRGB = img;
 
-  _imageRGB = img;
   if (size != "!") {
     // resize : width must be a multiple of 16!
     Geometry sz(size);
-    _imageRGB.sample(sz);
-    const auto newWidth = _imageRGB.size().width();
+    subImg._imageRGB.sample(sz);
+    const auto newWidth = subImg._imageRGB.size().width();
     const auto mod = newWidth % 16;
     // if size's not forced
     if (size.find("!") == std::string::npos) {
       if (mod != 0) { //Fit the image in a width multiple of 16
         sz.width(newWidth - mod);
-        _imageRGB = img;
-        _imageRGB.sample(sz);
+        subImg._imageRGB = img;
+        subImg._imageRGB.sample(sz);
       }
     }
     //if size's forced
@@ -58,44 +53,74 @@ void CChunkyImage::Init(const Image& img, const unsigned int nbColors, const boo
       }
     }
   }
+  subImg._palette = _palette;
 
-  // constrain the colors to the provided Palette
-  const auto nbPixels = _imageRGB.size().width() * _imageRGB.size().height();
-  MagickCore::PixelPacket* pixel = _imageRGB.getPixels(0, 0, _imageRGB.size().width(), _imageRGB.size().height());
-  for (std::size_t i = 0u; i < nbPixels; ++i)
-  {
-    const rgba8Bits_t curColor{ pixel->red , pixel->green, pixel->blue };
-    const auto nearestAmigaColor = paletteSpace.GetNearestColor(curColor);
-    pixel->red = nearestAmigaColor.r << (8 * (sizeof(pixel->red) - 1));
-    pixel->green = nearestAmigaColor.g << (8 * (sizeof(pixel->green) - 1));
-    pixel->blue = nearestAmigaColor.b << (8 * (sizeof(pixel->blue) - 1));
-    ++pixel;
-  }
-
-  // quantize image to the nb colors provided
-  _imageRGB.quantizeColors(nbColors);
-  _imageRGB.quantizeDither(dither);
-  _imageRGB.quantizeDitherMethod(Magick::FloydSteinbergDitherMethod);
-  //_imageRGB.orderedDither("o3x3,2");
-  _imageRGB.quantize();
-
-  // get the palette and construct the color indexes
-  _palette = CPaletteFactory::GetInstance().GetUniqueColors(_imageRGB);
-  pixel = _imageRGB.getPixels(0, 0, _imageRGB.size().width(), _imageRGB.size().height());
+  const auto nbPixels = subImg._imageRGB.size().width() * subImg._imageRGB.size().height();
+  MagickCore::PixelPacket* pixel = subImg._imageRGB.getPixels(0, 0, subImg._imageRGB.size().width(), subImg._imageRGB.size().height());
   for (unsigned int i = 0; i < nbPixels; i++)
   {
     rgba8Bits_t color{ pixel->red , pixel->green, pixel->blue };
     ++pixel;
     
-    const auto hColor = std::find(_palette.begin(), _palette.end(), color);
-    if (hColor == _palette.end()) {
-      throw CError("Palette is too small.");
+    const auto hColor = std::find(subImg._palette.begin(), subImg._palette.end(), color);
+    if (hColor == subImg._palette.end()) {
+        throw CError("Palette is too small.");
     }
     else {
-      const auto idx = static_cast<uint8_t>(hColor - _palette.begin());
-      _imageIdx.push_back(idx);
+      const auto idx = static_cast<uint8_t>(hColor - subImg._palette.begin());
+      subImg._imageIdx.push_back(idx);
     }
   }
 
-  _isInitialized = true;
+  subImg._isInitialized = true;
+  return subImg;
+}
+
+void CChunkyImageFactory::Init(const Image& img, const unsigned int nbColors, const bool dither, const CPalette& paletteSpace)
+{
+  if (nbColors > OCS_MAX_COLORS || nbColors < 2) {
+    std::ostringstream maxColors;
+    maxColors << OCS_MAX_COLORS;
+    string msg("Number of colors must be between 2 and " + maxColors.str() + ".");
+    throw CError(msg);
+  }
+
+  _imageRGB = img;
+ 
+  // Constrain the colors to the provided Palette. We cannot only use the
+  // default quantization, because that will introduce colorshifts to better
+  // represent neighbouring pixel regions, it does not respect the colors
+  // already in the image.
+  _imageRGB.quantizeColors(nbColors);
+  _imageRGB.quantizeDither(dither);
+  _imageRGB.quantizeDitherMethod(Magick::FloydSteinbergDitherMethod);
+  //_imageRGB.orderedDither("o3x3,2");
+  _imageRGB.quantize();
+  // now map the color reduced image using a map that only contains valid Amiga colors
+  CPalette quantizedPalette = CPaletteFactory::GetInstance().GetUniqueColors(_imageRGB);
+  Image map(Geometry(quantizedPalette.size(), 1), "white");
+  MagickCore::PixelPacket* pixel = map.getPixels(0, 0, map.size().width(), map.size().height());
+  for (std::size_t i = 0u; i < quantizedPalette.size(); ++i)
+  {
+    const auto nearestAmigaColor = paletteSpace.GetNearestColor(quantizedPalette[i]);
+    pixel->red = nearestAmigaColor.r << (8 * (sizeof(pixel->red) - 1));
+    pixel->green = nearestAmigaColor.g << (8 * (sizeof(pixel->green) - 1));
+    pixel->blue = nearestAmigaColor.b << (8 * (sizeof(pixel->blue) - 1));
+    ++pixel;
+  }
+  map.syncPixels();
+  // map again from the original, which can potentially match slightly better
+  _imageRGB = img;
+  _imageRGB.map(map, dither);
+
+  _palette = CPaletteFactory::GetInstance().GetUniqueColors(_imageRGB);
+}
+
+void CChunkyImage::Save(const string& filename)
+{
+  _imageRGB.magick("PNG");
+  _imageRGB.defineSet("png:color-type", "2");
+  _imageRGB.defineSet("png:bit-depth", "8");
+  _imageRGB.defineSet("png:format", "png24");
+  _imageRGB.write(filename);
 }
