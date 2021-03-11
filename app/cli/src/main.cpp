@@ -51,10 +51,15 @@ void SdlError(const std::string& error,
 
 void DisplayPreview(const CChunkyImage& img, const int scale);
 
+vector<pair<int, int>> CombineImagesAndInitFactory(Image& imgCombined, CChunkyImageFactory& factory,
+                                                   const std::vector<string>& inputs, const int nbColors, const bool dithering);
+
+
+
 //**********************************//
 // Required arguments:
-// -i : input image
-// -o : output file
+// -i : input images
+// -o : output files
 //*********************************//
 int main(int argc, char *argv[])
 {
@@ -62,14 +67,14 @@ int main(int argc, char *argv[])
     {
         //Parsing arguments
         TCLAP::CmdLine cmd{ "rgb2amiga - by Christophe Meneboeuf <christophe@xtof.info>", ' ', "1" };
-        TCLAP::MultiArg<string> argInput{ "i", "input", "Input file to process.", true, "string" };
+        TCLAP::MultiArg<string> argInputs{ "i", "input", "Input file to process.", true, "string" };
         TCLAP::MultiArg<string> argOutput("o", "output", "Output file.", true, "string");
         TCLAP::ValueArg<int>    argNbColors("c", "colors", "Number of colors to use. Defaults to \"32\".", false, 32, "string");
         TCLAP::ValueArg<string> argSize("s", "size", "Targeted size in WidthxHeight format. Defaults to \"320x256\"\n\tOptionnal suffix: '!' ignore the original aspect ratio. Only '!': keep input size", false, "320x256", "string");
         TCLAP::SwitchArg argDither("d", "dither", "Use dithering.");
         TCLAP::ValueArg<string> argFormat("f", "format", "Save as iff-ilbm (default) or png-gpl (PNG + Gimp palette).", false, "iff-ilbm", "format slection");
         TCLAP::ValueArg<int> argPreview("p", "preview", "Open a window to display a scaled preview. Defaults to no preview.", false, 0, "scale");
-        cmd.add(argInput);
+        cmd.add(argInputs);
         cmd.add(argOutput);
         cmd.add(argNbColors);
         cmd.add(argSize);
@@ -78,35 +83,39 @@ int main(int argc, char *argv[])
         cmd.add(argFormat);
         cmd.parse( argc, argv );
 
-        if (argInput.getValue().size() != argOutput.getValue().size()) {
+        if (argInputs.getValue().size() != argOutput.getValue().size()) {
           std::cerr << "Error: number of inputs and outputs must be the same" << std::endl;
           return 1;
         }
 
-        // Load all images into one big canvas
+        // 1st pass the images are "combined" in a canvas with a black background color
         Image combinedImg(Geometry(0, 0), "black");
-        size_t vOffset = 0;
-        vector<pair<int, int>> widthsHeights;
-        for (auto inFile : argInput.getValue())
-        {
-          Image imgInput(inFile);
-          size_t imgW = imgInput.size().width();
-          size_t imgH = imgInput.size().height();
-          combinedImg.extent(Geometry(max(combinedImg.size().width(), imgW), combinedImg.size().height() + imgH), imgInput.backgroundColor());
-          combinedImg.copyPixels(imgInput, imgInput.size(), Offset(0, vOffset));
-          widthsHeights.push_back({ imgW, imgH });
-          vOffset += imgInput.size().height();
-        }
-
-        // Get the palette from the combined images, so they will all use the same
-        CPalette palette = CPaletteFactory::GetInstance().GetPalette("AMIGA");
         CChunkyImageFactory factory;
-        factory.Init(combinedImg, argNbColors.getValue(), argDither.getValue(), palette);
+        auto widthsHeights = CombineImagesAndInitFactory(combinedImg, factory, argInputs.getValue(), argNbColors.getValue(), argDither.getValue());
+        
+        if (argInputs.getValue().size() > 1) // no 2nd pass required if only one input
+        {
+          // 2nd pass the images are "combined" in a canvas with a color appearing in the final palette.
+          // Indeed the black canvas could consume a color not required by the images
+          const auto& palette = factory.GetPalette();
+          Magick::Color canvasColor;
+          constexpr int quantumSize = sizeof(MagickCore::Quantum);
+          for (const auto& color : palette) {
+            if (color.r != 0 && color.g != 0 && color.b != 0) {
+              canvasColor.redQuantum(color.r << (8 * (quantumSize - 1)));
+              canvasColor.greenQuantum(color.g << (8 * (quantumSize - 1)));
+              canvasColor.blueQuantum(color.b << (8 * (quantumSize - 1)));
+              break;
+            }
+          }
+          combinedImg = Image(Geometry(0, 0), canvasColor);
+          widthsHeights = CombineImagesAndInitFactory(combinedImg, factory, argInputs.getValue(), argNbColors.getValue(), argDither.getValue());
+        }
 
         // split the color-reduced image into the separate output images
         vector<CChunkyImage> chunkyImgs;
-        vOffset = 0;
-        for (int i = 0; i < argInput.getValue().size(); i++)
+        size_t vOffset = 0;
+        for (int i = 0; i < argInputs.getValue().size(); i++)
         {
           CChunkyImage chunkyImg = factory.GetImage(Geometry(widthsHeights[i].first, widthsHeights[i].second, 0, vOffset), argSize.getValue());
           chunkyImgs.push_back(chunkyImg);
@@ -214,4 +223,32 @@ void DisplayPreview(const CChunkyImage& img, const int scale)
   SDL_DestroyRenderer(pRenderer);
   SDL_DestroyWindow(pWindow);
   SDL_Quit();
+}
+
+
+
+vector<pair<int, int>> CombineImagesAndInitFactory(Image& imgCombined, CChunkyImageFactory& factory,
+                                                   const std::vector<string>& inputs, const int nbColors, const bool dithering)
+{
+  // Load all images into one big canvas
+  size_t vOffset = 0;
+  vector<pair<int, int>> widthsHeights;
+  for (auto inFile : inputs)
+  {
+    Image imgInput(inFile);
+    size_t imgW = imgInput.size().width();
+    size_t imgH = imgInput.size().height();
+    imgCombined.extent(Geometry(max(imgCombined.size().width(), imgW), imgCombined.size().height() + imgH), imgInput.backgroundColor());
+    imgCombined.copyPixels(imgInput, imgInput.size(), Offset(0, vOffset));
+    widthsHeights.push_back({ imgW, imgH });
+    vOffset += imgInput.size().height();
+  }
+
+
+
+  // Get the palette from the combined images, so they will all use the same
+  CPalette palette = CPaletteFactory::GetInstance().GetPalette("AMIGA");
+  factory.Init(imgCombined, nbColors, dithering, palette);
+
+  return widthsHeights;
 }

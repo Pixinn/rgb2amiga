@@ -56,6 +56,7 @@ public:
     void Init(const Magick::Image&, const unsigned int nbColors, const bool dither, const CPalette&);
 
     inline CChunkyImage GetImage(const string& size) const { return GetImage(_imageRGB.size(), size); }
+    inline const CPalette& GetPalette() const { return _palette; }
 
     CChunkyImage GetImage(Magick::Geometry area, const string& size) const;
 
