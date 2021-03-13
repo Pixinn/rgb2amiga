@@ -93,21 +93,16 @@ int main(int argc, char *argv[])
         CChunkyImageFactory factory;
         auto widthsHeights = CombineImagesAndInitFactory(combinedImg, factory, argInputs.getValue(), argNbColors.getValue(), argDither.getValue());
         
-        if (argInputs.getValue().size() > 1) // no 2nd pass required if only one input
+        if (factory.GetPalette().size() < argNbColors.getValue()) // the black color may not be present in the images and has wasted a color of the palette
         {
           // 2nd pass the images are "combined" in a canvas with a color appearing in the final palette.
-          // Indeed the black canvas could consume a color not required by the images
           const auto& palette = factory.GetPalette();
           Magick::Color canvasColor;
+          const auto& color = palette[0]; // black is not in the palette
           constexpr int quantumSize = sizeof(MagickCore::Quantum);
-          for (const auto& color : palette) {
-            if (color.r != 0 && color.g != 0 && color.b != 0) {
-              canvasColor.redQuantum(color.r << (8 * (quantumSize - 1)));
-              canvasColor.greenQuantum(color.g << (8 * (quantumSize - 1)));
-              canvasColor.blueQuantum(color.b << (8 * (quantumSize - 1)));
-              break;
-            }
-          }
+          canvasColor.redQuantum(color.r << (8 * (quantumSize - 1)));
+          canvasColor.greenQuantum(color.g << (8 * (quantumSize - 1)));
+          canvasColor.blueQuantum(color.b << (8 * (quantumSize - 1)));
           combinedImg = Image(Geometry(0, 0), canvasColor);
           widthsHeights = CombineImagesAndInitFactory(combinedImg, factory, argInputs.getValue(), argNbColors.getValue(), argDither.getValue());
         }
