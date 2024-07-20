@@ -20,6 +20,7 @@
 #ifndef CPALETTE_H
 #define CPALETTE_H
 
+#include <limits>
 #include <cstdint>
 #include <string>
 #include <unordered_map>
